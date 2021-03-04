@@ -70,6 +70,26 @@ static void * const kMXScrollViewControllerKVOContext = (void*)&kMXScrollViewCon
     }
 }
 
+- (void)viewDidLayoutSubviews {
+    [super viewDidLayoutSubviews];
+
+    //yap xia
+    if([self checkIsIphoneX]){
+        CGFloat scrollViewHeight = [UIScreen mainScreen].bounds.size.height - self.scrollView.frame.origin.y - 25.f;
+        [self.scrollView setFrame:CGRectMake(self.scrollView.frame.origin.x, self.scrollView.frame.origin.y, [UIScreen mainScreen].bounds.size.width, scrollViewHeight)];
+    }
+    //yap xia
+    self.scrollView.contentSize = self.scrollView.frame.size;
+    [self layoutChildViewController];
+}
+
+- (void)layoutChildViewController {
+    CGRect frame = self.scrollView.frame;
+    frame.origin = CGPointZero;
+    frame.size.height -= self.scrollView.parallaxHeader.minimumHeight;
+    self.childViewController.view.frame = frame;
+}
+
 - (void)viewDidAppear:(BOOL)animated {
     [super viewDidAppear:animated];
 
@@ -197,6 +217,19 @@ static void * const kMXScrollViewControllerKVOContext = (void*)&kMXScrollViewCon
     [self.scrollView.parallaxHeader removeObserver:self forKeyPath:NSStringFromSelector(@selector(minimumHeight))];
 }
 
+//yap xia
+-(BOOL)checkIsIphoneX{
+    BOOL isX = NO;
+    if (@available(iOS 11.0, *)) {
+        UIWindow *mainWindow = [[[UIApplication sharedApplication] delegate] window];
+        if (mainWindow.safeAreaInsets.top > 0.0) {
+            isX = YES;
+        }
+    }
+    return isX;
+}
+//yap xia
+
 @end
 
 #pragma mark UIViewController category
@@ -221,6 +254,7 @@ static void * const kMXScrollViewControllerKVOContext = (void*)&kMXScrollViewCon
     if ([self.sourceViewController isKindOfClass:[MXScrollViewController class]]) {
         MXScrollViewController *svc = self.sourceViewController;
         svc.headerViewController = self.destinationViewController;
+        svc.headerViewController.parallaxHeader.customHeaderModel = svc.customModel;
     }
 }
 
@@ -234,6 +268,7 @@ static void * const kMXScrollViewControllerKVOContext = (void*)&kMXScrollViewCon
     if ([self.sourceViewController isKindOfClass:[MXScrollViewController class]]) {
         MXScrollViewController *svc = self.sourceViewController;
         svc.childViewController = self.destinationViewController;
+        svc.headerViewController.parallaxHeader.customHeaderModel = svc.customModel;
     }
 }
 
